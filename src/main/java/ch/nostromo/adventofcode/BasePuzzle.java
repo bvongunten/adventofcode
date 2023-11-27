@@ -14,7 +14,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public abstract class BasePuzzle {
-    Logger LOG  = Logger.getLogger(BasePuzzle.class.getName());
+    public Logger LOG  = Logger.getLogger(BasePuzzle.class.getName());
 
     private static final String XMASTREE =
             "            *\n" +
