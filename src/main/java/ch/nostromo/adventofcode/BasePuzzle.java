@@ -1,12 +1,12 @@
 package ch.nostromo.adventofcode;
 
+import ch.nostromo.adventofcode.utils.AnsiColor;
 import ch.nostromo.adventofcode.utils.LogFormatter;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -14,26 +14,23 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public abstract class BasePuzzle {
-    public Logger LOG  = Logger.getLogger(BasePuzzle.class.getName());
+    public Logger LOG = Logger.getLogger(BasePuzzle.class.getName());
 
-    private static final String XMASTREE =
-            "            *\n" +
-            "           ***\n" +
-            "          *****\n" +
-            "         *******\n" +
-            "        *********\n" +
-            "       ***********\n" +
-            "      *************\n" +
-            "     ***************\n" +
-            "    *****************\n" +
-            "   *******************\n" +
-            "           ***\n" +
-            "           ***";
 
     private String expectedTestResult;
 
+    private String testInput;
+
+    private String fullInput;
+
     public BasePuzzle(String expectedTestResult) {
-       this.expectedTestResult = expectedTestResult;
+        this.expectedTestResult = expectedTestResult;
+    }
+
+    public BasePuzzle(String expectedTestResult, String testInput, String fullInput) {
+        this.expectedTestResult = expectedTestResult;
+        this.testInput = testInput;
+        this.fullInput = fullInput;
     }
 
     public abstract String solvePuzzle(List<String> input);
@@ -41,25 +38,68 @@ public abstract class BasePuzzle {
     protected void run() {
         initializeLogging();
 
-        LOG.info("Puzzle" + getPuzzleResource());
-
-        LOG.info("Test set ...");
-        String testResult = solvePuzzle(readInput("test.txt"));
-
-        if (testResult.equals(expectedTestResult)){
-            LOG.info ("Test set finished successfully with expected solution of " + expectedTestResult);
+        String testResult;
+        if (testInput == null) {
+            testResult = solvePuzzle(readInput("test.txt"));
         } else {
-            LOG.severe ("Test set failed expected solution of " + expectedTestResult + " but soloutino was " + testResult);
+            testResult = solvePuzzle(Arrays.asList(this.testInput.split("\n")));
         }
 
-        LOG.info("Full set ... ");
+        String fullResult;
+        if (fullInput == null) {
+            fullResult = solvePuzzle(readInput("input.txt"));
+        } else {
+            fullResult = solvePuzzle(Arrays.asList(fullInput));
+        }
 
-        String fullResult = solvePuzzle(readInput("input.txt"));
+        printResult(testResult, fullResult);
 
-        LOG.info ("Full set solution is " + fullResult);
     }
 
-    private List<String> readInput(String fileName)  {
+    private void printResult(String testResult, String solution) {
+        String result = "\n            $\n" +
+                "           ***               [1]\n" +
+                "          **I**\n" +
+                "         **%**o*\n" +
+                "        **I**o***            [2]\n" +
+                "       ***o***%***\n" +
+                "      ***%***I*****          [3]\n" +
+                "     **o***o***I****\n" +
+                "    ****I***%****o***        [4]\n" +
+                "   ****o******I***%***\n" +
+                "           ###\n" +
+                "           ###\n";
+
+        result = colorizeString(result, "*", AnsiColor.GREEN);
+        result = colorizeString(result, "#", AnsiColor.YELLOW);
+        result = colorizeString(result, "o", AnsiColor.RED_BRIGHT);
+        result = colorizeString(result, "%", AnsiColor.BLUE);
+        result = colorizeString(result, "I", AnsiColor.YELLOW_BRIGHT);
+        result = colorizeString(result, "$", AnsiColor.YELLOW_BRIGHT);
+
+
+        result = result.replace("[1]", AnsiColor.YELLOW_BRIGHT + "~ " + AnsiColor.RED + "Advent of Code" + AnsiColor.YELLOW_BRIGHT + " ~" + AnsiColor.RESET);
+        result = result.replace("[2]", AnsiColor.WHITE + "Puzzle: " + getPuzzleResource() + "/"+ getClass().getSimpleName() + AnsiColor.RESET);
+
+        if (expectedTestResult.equalsIgnoreCase(testResult)) {
+            result = result.replace("[3]", AnsiColor.WHITE + "Test: " + AnsiColor.GREEN + "Passed" + AnsiColor.WHITE + " with expected solution of " + expectedTestResult + AnsiColor.RESET);
+        } else {
+            result = result.replace("[3]", AnsiColor.WHITE + "Test: " + AnsiColor.RED_BRIGHT + "Failed" + AnsiColor.WHITE + " with solution " + testResult + " instead of expected " + expectedTestResult + AnsiColor.RESET);
+
+        }
+
+        result = result.replace("[4]", AnsiColor.WHITE + "Solution: " + solution);
+
+        System.out.println(result);
+
+    }
+
+    private String colorizeString(String text, String token, AnsiColor color) {
+        return text.replace(token, color + token + AnsiColor.RESET);
+    }
+
+
+    private List<String> readInput(String fileName) {
         try {
             String path = getPuzzleResource() + "/" + fileName;
             return Files.readAllLines(Paths.get(getClass().getClassLoader().getResource(path).toURI()), Charset.defaultCharset());
@@ -95,26 +135,6 @@ public abstract class BasePuzzle {
     public static int nthLastIndexOf(int nth, String ch, String string) {
         if (nth <= 0) return string.length();
         return nthLastIndexOf(--nth, ch, string.substring(0, string.lastIndexOf(ch)));
-    }
-
-
-    public static void logo() {
-        BufferedImage image = new BufferedImage(300, 32, BufferedImage.TYPE_INT_RGB);
-        Graphics g = image.getGraphics();
-        g.setFont(new Font("Dialog", Font.PLAIN, 24));
-        Graphics2D graphics = (Graphics2D) g;
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        graphics.drawString("Advent of Code", 6, 24);
-        // ImageIO.write(image, "png", new File("text.png"));
-
-        for (int y = 0; y < 32; y++) {
-            StringBuilder sb = new StringBuilder();
-            for (int x = 0; x < 144; x++)
-                sb.append(image.getRGB(x, y) == -16777216 ? " " : image.getRGB(x, y) == -1 ? "#" : "*");
-            if (sb.toString().trim().isEmpty()) continue;
-            System.out.println(sb);
-        }
     }
 
 }
