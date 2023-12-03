@@ -23,6 +23,8 @@ public abstract class BasePuzzle {
 
     private String fullInput;
 
+    private boolean isTestRun;
+
     public BasePuzzle(String expectedTestResult) {
         this.expectedTestResult = expectedTestResult;
     }
@@ -38,6 +40,7 @@ public abstract class BasePuzzle {
     protected void run() {
         initializeLogging();
 
+        isTestRun = true;
         String testResult;
         if (testInput == null) {
             testResult = solvePuzzle(readInput("test.txt"));
@@ -45,6 +48,7 @@ public abstract class BasePuzzle {
             testResult = solvePuzzle(Arrays.asList(this.testInput.split("\n")));
         }
 
+        isTestRun = false;
         String fullResult;
         if (fullInput == null) {
             fullResult = solvePuzzle(readInput("input.txt"));
@@ -92,6 +96,10 @@ public abstract class BasePuzzle {
 
         System.out.println(result);
 
+    }
+
+    public boolean isTestRun() {
+        return isTestRun;
     }
 
     private String colorizeString(String text, String token, AnsiColor color) {
