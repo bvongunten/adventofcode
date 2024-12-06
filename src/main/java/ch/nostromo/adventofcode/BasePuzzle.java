@@ -6,6 +6,8 @@ import ch.nostromo.adventofcode.utils.LogFormatter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -40,6 +42,8 @@ public abstract class BasePuzzle {
     protected void run() {
         initializeLogging();
 
+        Instant startTest = Instant.now();
+
         isTestRun = true;
         String testResult;
         if (testInput == null) {
@@ -47,6 +51,11 @@ public abstract class BasePuzzle {
         } else {
             testResult = solvePuzzle(Arrays.asList(this.testInput.split("\n")));
         }
+
+        Duration durationTest = Duration.between(startTest, Instant.now());
+
+
+        Instant startFull = Instant.now();
 
         isTestRun = false;
         String fullResult;
@@ -56,11 +65,15 @@ public abstract class BasePuzzle {
             fullResult = solvePuzzle(Arrays.asList(fullInput));
         }
 
-        printResult(testResult, fullResult);
+        Duration durationFull = Duration.between(startFull, Instant.now());
+
+        String time = durationTest.toMillis() + " / " + durationFull.toMillis();
+
+        printResult(testResult, fullResult, time);
 
     }
 
-    private void printResult(String testResult, String solution) {
+    private void printResult(String testResult, String solution, String time) {
         String result = "\n            $\n" +
                 "           ***               [1]\n" +
                 "          **I**\n" +
@@ -71,7 +84,7 @@ public abstract class BasePuzzle {
                 "     **o***o***I****\n" +
                 "    ****I***%****o***        [4]\n" +
                 "   ****o******I***%***\n" +
-                "           ###\n" +
+                "           ###               [5]\n" +
                 "           ###\n";
 
         result = colorizeString(result, "*", AnsiColor.GREEN);
@@ -83,7 +96,7 @@ public abstract class BasePuzzle {
 
 
         result = result.replace("[1]", AnsiColor.YELLOW_BRIGHT + "~ " + AnsiColor.RED + "Advent of Code" + AnsiColor.YELLOW_BRIGHT + " ~" + AnsiColor.RESET);
-        result = result.replace("[2]", AnsiColor.WHITE + "Puzzle: " + getPuzzleResource() + "/"+ getClass().getSimpleName() + AnsiColor.RESET);
+        result = result.replace("[2]", AnsiColor.WHITE + "Puzzle: " + getPuzzleResource() + "/" + getClass().getSimpleName() + AnsiColor.RESET);
 
         if (expectedTestResult.equalsIgnoreCase(testResult)) {
             result = result.replace("[3]", AnsiColor.WHITE + "Test: " + AnsiColor.GREEN + "Passed" + AnsiColor.WHITE + " with expected solution of " + expectedTestResult + AnsiColor.RESET);
@@ -93,6 +106,7 @@ public abstract class BasePuzzle {
         }
 
         result = result.replace("[4]", AnsiColor.WHITE + "Solution: " + solution);
+        result = result.replace("[5]", AnsiColor.WHITE + "Time ms: " + time);
 
         System.out.println(result);
 
